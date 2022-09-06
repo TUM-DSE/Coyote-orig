@@ -1,4 +1,13 @@
 
+# Change Coyote commit
+
+We are currently using commit `c7e475e` for testing. 
+
+```
+cd Coyote
+git checkout c7e475e
+```
+
 # Compile Coyote Shell
 ```
 cd Coyote/hw/
@@ -10,7 +19,7 @@ make compile
 
 # Program FPGA with Coyote Shell
 
-Use vivado to write the bitstream located in `Coyote/hw/build/bitstreams/top.bit`.
+Use vivado to write the bitstream located in `Coyote/hw/build/bitstreams/top.bit`. This is required if the server is rebooted.
 
 
 # Compile Coyote driver
