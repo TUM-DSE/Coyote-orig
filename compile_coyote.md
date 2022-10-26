@@ -19,7 +19,26 @@ make compile
 
 # Program FPGA with Coyote Shell
 
-Use vivado to write the bitstream located in `Coyote/hw/build/bitstreams/top.bit`. This is required if the server is rebooted.
+Use vivado to write the bitstream located in `Coyote/hw/build/bitstreams/cyt_top.bit`. This is required if the server is rebooted.
+
+A tcl script can be used to streamline this process. An example is shown below. 
+```
+open_hw_manager
+connect_hw_server -allow_non_jtag
+open_hw_target
+
+set Device [lindex [get_hw_devices] 0]
+current_hw_device $Device
+refresh_hw_device -update_hw_probes false $Device
+set_property PROBES.FILE {} $Device
+set_property FULL_PROBES.FILE {} $Device
+set_property PROGRAM.FILE {/home/jiyang/Coyote_new/hw/build/bitstreams/cyt_top.bit} $Device
+
+program_hw_devices $Device
+refresh_hw_device $Device
+```
+
+Make sure to change the PROGRAM.FILE parameter for the target bitstream. Use `vivado -mode tcl -source program_fpga.tcl` to launch the script. This script should work on system with only one FPGA card. 
 
 
 # Compile Coyote driver
@@ -38,6 +57,18 @@ sudo ./util/hot_reset.sh b3:00.0
 where `b3:00.0` is the fpga device id from `lspci -v`.
 
 # Compile example host code
+
+For newer commits (after Oct 17th),
+
+```
+cd Coyote
+mkdir build_bmark_fpga_sw && cd build_bmark_fpga_sw
+/usr/bin/cmake ../sw/ -DTARGET_DIR=../sw/examples/bmark_fpga
+make
+```
+
+For older commits (before Oct 17th),
+
 ```
 cd Coyote/sw/example/bmark_fpga
 mkdir build && cd build
