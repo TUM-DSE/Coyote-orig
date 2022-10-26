@@ -129,7 +129,7 @@ axis_data_fifo_cnfg_rdma_544 inst_cmd_queue_out (
 );
 
 // REG
-always_ff @(posedge aclk, negedge aresetn) begin: PROC_REG
+always_ff @(posedge aclk) begin: PROC_REG
     if (aresetn == 1'b0) begin
         state_C <= ST_IDLE;
     end
@@ -322,19 +322,13 @@ always_comb begin: DP
         end
 
         ST_SEND_READ: 
-            if(req_parsed.ready) begin
-                req_parsed.valid = 1'b1;
-            end
+            req_parsed.valid = 1'b1;
 
         ST_SEND_WRITE:
-            if(req_parsed.ready) begin
-                req_parsed.valid = 1'b1;
-            end
+            req_parsed.valid = 1'b1;
 
         ST_SEND_BASE:
-            if(req_parsed.ready) begin
-                req_parsed.valid = 1'b1;
-            end
+            req_parsed.valid = 1'b1;
 
     endcase
 end

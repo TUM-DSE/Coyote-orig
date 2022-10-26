@@ -137,7 +137,7 @@ protected:
 	std::unordered_set<void*> mapped_upages;
 
 	/* Partial bitstreams */
-	std::unordered_map<int32_t, bStream> bstreams;
+	static std::unordered_map<int32_t, bStream> bstreams;
 
 	/* Utility */
 	void mmapFpga();
@@ -148,7 +148,7 @@ protected:
 	void reconfigure(void* vaddr, uint32_t len);
 
 	/* Post to controller */
-	void postCmd(uint64_t offs_3, uint64_t offs_2, uint64_t offs_1, uint64_t offs_0, int32_t send_flags = 0);
+	void postCmd(uint64_t offs_3, uint64_t offs_2, uint64_t offs_1, uint64_t offs_0);
 	void postPrep(uint64_t offs_3, uint64_t offs_2, uint64_t offs_1, uint64_t offs_0, uint8_t offs_reg = 0);
 	uint32_t last_qp = { 0 };
 
@@ -230,6 +230,7 @@ public:
 	void reconfigure(int32_t oid);
 	void addBitstream(std::string name, int32_t oid);
 	void removeBitstream(int32_t oid);	
+	bool checkBitstream(int32_t oid);
 	auto isReconfigurable() const { return fcnfg.en_pr; }
 
 	/**
@@ -260,6 +261,13 @@ public:
 	 * @param wr : rdma operation context struct
 	 */
 	void ibvPostSend(ibvQp *qp, ibvSendWr *wr);
+
+	/**
+	 * @brief Return the number of completed RDMA acks
+	 * 
+	 */
+	uint32_t checkIbvAcks();
+	void clearIbvAcks();
 
 	/**
 	 * @brief Debug

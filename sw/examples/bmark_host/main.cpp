@@ -23,7 +23,8 @@ using namespace fpga;
 constexpr auto const nRegions = 1;
 constexpr auto const defHuge = false;
 constexpr auto const nReps = 1;
-constexpr auto const defSize = 512;
+constexpr auto const defMinSize = 128;
+constexpr auto const defMaxSize = 32 * 1024;
 constexpr auto const nBenchRuns = 1;
 
 /**
@@ -42,7 +43,8 @@ int main(int argc, char *argv[])
         ("regions,n", boost::program_options::value<uint32_t>(), "Number of vFPGAs")
         ("huge,h", boost::program_options::value<bool>(), "Hugepages")
         ("reps,r", boost::program_options::value<uint32_t>(), "Number of repetitions")
-        ("size,s", boost::program_options::value<uint32_t>(), "Transfer size");
+        ("min_size,s", boost::program_options::value<uint32_t>(), "Starting transfer size")
+        ("max_size,e", boost::program_options::value<uint32_t>(), "Ending transfer size");
     
     boost::program_options::variables_map commandLineArgs;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, programDescription), commandLineArgs);
@@ -51,21 +53,24 @@ int main(int argc, char *argv[])
     uint32_t n_regions = nRegions;
     bool huge = defHuge;
     uint32_t n_reps = nReps;
-    uint32_t size = defSize;
+    uint32_t curr_size = defMinSize;
+    uint32_t max_size = defMaxSize;
 
     if(commandLineArgs.count("regions") > 0) n_regions = commandLineArgs["regions"].as<uint32_t>();
     if(commandLineArgs.count("huge") > 0) huge = commandLineArgs["huge"].as<bool>();
     if(commandLineArgs.count("reps") > 0) n_reps = commandLineArgs["reps"].as<uint32_t>();
-    if(commandLineArgs.count("size") > 0) size = commandLineArgs["size"].as<uint32_t>();
+    if(commandLineArgs.count("min_size") > 0) curr_size = commandLineArgs["min_size"].as<uint32_t>();
+    if(commandLineArgs.count("max_size") > 0) max_size = commandLineArgs["max_size"].as<uint32_t>();
 
-    uint32_t n_pages = huge ? ((size + hugePageSize - 1) / hugePageSize) : ((size + pageSize - 1) / pageSize);
+    uint32_t n_pages = huge ? ((max_size + hugePageSize - 1) / hugePageSize) : ((max_size + pageSize - 1) / pageSize);
 
     PR_HEADER("PARAMS");
     std::cout << "Number of regions: " << n_regions << std::endl;
     std::cout << "Huge pages: " << huge << std::endl;
     std::cout << "Number of allocated pages: " << n_pages << std::endl;
     std::cout << "Number of repetitions: " << n_reps << std::endl;
-    std::cout << "Transfer size: " << size << std::endl;
+    std::cout << "Starting transfer size: " << curr_size << std::endl;
+    std::cout << "Starting transfer size: " << max_size << std::endl;
 
     // ---------------------------------------------------------------
     // Init 
@@ -85,43 +90,50 @@ int main(int argc, char *argv[])
     // Runs 
     // ---------------------------------------------------------------
     cBench bench(nBenchRuns);
-    uint32_t n_runs = 0;
-    
-    // Throughput test
-    auto benchmark_thr = [&]() {
-        bool k = false;
-        n_runs++;
+    uint32_t n_runs;
 
-        // Transfer the data
-        for(int i = 0; i < n_reps; i++)
-            for(int j = 0; j < n_regions; j++) 
-                cproc[j]->invoke({CoyoteOper::TRANSFER, hMem[j], hMem[j], size, size, false, false});
+    PR_HEADER("PERF HOST");
+    while(curr_size <= max_size) {
+        // Prep
+        for(int i = 0; i < n_regions; i++) 
+            cproc[i]->clearCompleted();
+        n_runs = 0;
+        
+        // Throughput test
+        auto benchmark_thr = [&]() {
+            bool k = false;
+            n_runs++;
 
-        while(!k) {
-            k = true;
-            for(int i = 0; i < n_regions; i++)
-                if(cproc[i]->checkCompleted(CoyoteOper::TRANSFER) != n_reps * n_runs) k = false;
-        }  
-    };
-    bench.runtime(benchmark_thr);
-    PR_HEADER("THROUGHPUT");
-    std::cout << "Throughput: " << (n_regions * 1000 * size) / (bench.getAvg() / n_reps) << " MB/s" << std::endl;
-    
-    n_runs = 0;
+            // Transfer the data
+            for(int i = 0; i < n_reps; i++)
+                for(int j = 0; j < n_regions; j++) 
+                    cproc[j]->invoke({CoyoteOper::TRANSFER, hMem[j], hMem[j], curr_size, curr_size, false, false});
 
-    // Latency test
-    auto benchmark_lat = [&]() {
-        // Transfer the data
-        for(int i = 0; i < n_reps; i++) {
-            for(int j = 0; j < n_regions; j++) {
-                cproc[j]->invoke({CoyoteOper::TRANSFER, hMem[j], hMem[j], size, size, true, false});
-                while(cproc[j]->checkCompleted(CoyoteOper::TRANSFER) != 1) ;            
+            while(!k) {
+                k = true;
+                for(int i = 0; i < n_regions; i++)
+                    if(cproc[i]->checkCompleted(CoyoteOper::TRANSFER) != n_reps * n_runs) k = false;
+            }  
+        };
+        bench.runtime(benchmark_thr);
+        std::cout << "Size: " << curr_size << ", thr: " << (n_regions * 1000 * curr_size) / (bench.getAvg() / n_reps) << " MB/s";
+
+        // Latency test
+        auto benchmark_lat = [&]() {
+            // Transfer the data
+            for(int i = 0; i < n_reps; i++) {
+                for(int j = 0; j < n_regions; j++) {
+                    cproc[j]->invoke({CoyoteOper::TRANSFER, hMem[j], hMem[j], curr_size, curr_size, true, false});
+                    while(cproc[j]->checkCompleted(CoyoteOper::TRANSFER) != 1) ;            
+                }
             }
-        }
-    };
-    bench.runtime(benchmark_lat);
-    PR_HEADER("LATENCY");
-    std::cout << "Latency: " << bench.getAvg() / (n_reps) << " ns" << std::endl;
+        };
+        bench.runtime(benchmark_lat);
+        std::cout << ", lat: " << bench.getAvg() / (n_reps) << " ns" << std::endl;
+
+        curr_size *= 2;
+    }
+    std::cout << std::endl;
     
     // ---------------------------------------------------------------
     // Release 

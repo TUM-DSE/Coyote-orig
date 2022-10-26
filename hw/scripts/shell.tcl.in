@@ -72,12 +72,19 @@ add_files "$hw_dir/hdl/mmu"
 add_files "$hw_dir/hdl/pkg"
 add_files "$hw_dir/hdl/slave"
 add_files "$hw_dir/hdl/common"
-add_files "$hw_dir/hdl/cdma_common"
 add_files "$hw_dir/hdl/cdma_u"
 #add_files "$hw_dir/hdl/cdma_a"
+add_files "$hw_dir/hdl/stripe"
 
 if {$cfg(en_net) eq 1} {
-    add_files "$hw_dir/hdl/network"
+    add_files "$hw_dir/hdl/network/cmac"
+    add_files "$hw_dir/hdl/network/stack"
+    if {$cfg(en_rdma) eq 1} {
+        add_files "$hw_dir/hdl/network/rdma"
+    }
+    if {$cfg(en_tcp) eq 1} {
+        add_files "$hw_dir/hdl/network/tcp"
+    }
 }
 
 if {$cfg(fdev) eq "enzian"} {
@@ -90,7 +97,7 @@ add_files "$proj_dir/hdl/wrappers/config_0"
 add_files "$proj_dir/hdl/config_0"
 
 # Top level
-set_property "top" "top" [current_fileset]
+set_property "top" "cyt_top" [current_fileset]
 
 # Constraints
 add_files -norecurse -fileset [get_filesets constrs_1] "$hw_dir/constraints/$cfg(fdev)/$cfg(fdev)_base.xdc"
@@ -201,7 +208,7 @@ if {$cfg(en_pr) eq 1} {
         append cmd "\[file normalize \"\$hw_dir/hdl/pkg/lynx_intf.sv\"] \ "
         append cmd "\[file normalize \"\$hw_dir/hdl/pkg/axi_macros.svh\"] \ "
         append cmd "\[file normalize \"\$hw_dir/hdl/pkg/lynx_macros.svh\"] \ "
-        append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axis_reg_rtl.sv\"] \ "
+        append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axisr_reg_rtl.sv\"] \ "
         append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axil_reg_rtl.sv\"] \ "
         append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axil_reg_rd.v\"] \ "
         append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axil_reg_wr.v\"] \ "
@@ -241,7 +248,7 @@ if {$cfg(en_pr) eq 1} {
             append cmd "\[file normalize \"\$hw_dir/hdl/pkg/lynx_intf.sv\"] \ "
             append cmd "\[file normalize \"\$hw_dir/hdl/pkg/axi_macros.svh\"] \ "
             append cmd "\[file normalize \"\$hw_dir/hdl/pkg/lynx_macros.svh\"] \ "
-            append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axis_reg_rtl.sv\"] \ "
+            append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axisr_reg_rtl.sv\"] \ "
             append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axil_reg_rtl.sv\"] \ "
             append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axil_reg_rd.v\"] \ "
             append cmd "\[file normalize \"\$hw_dir/hdl/common/regs/axil_reg_wr.v\"] \ "
@@ -279,6 +286,16 @@ source "${CMAKE_BINARY_DIR}/example.tcl" -notrace
 
 puts "**** Example check"
 puts "****"
+
+########################################################################################################
+# CUSTOM SCRIPTS
+########################################################################################################
+if {$cfg(shl_path) != "0"} {
+    source "${SHL_SCR_PATH}" -notrace
+
+    puts "**** Custom shell script"
+    puts "****"
+}
 
 ########################################################################################################
 

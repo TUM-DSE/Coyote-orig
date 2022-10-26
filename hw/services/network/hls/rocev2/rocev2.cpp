@@ -598,7 +598,8 @@ void rocev2(
 	hls::stream<recvPkg>& m_axis_dbg_1,
 #endif
 	ap_uint<32>& regCrcDropPkgCount,
-	ap_uint<32>& regInvalidPsnDropCount
+	ap_uint<32>& regInvalidPsnDropCount,
+	ap_uint<32>& regValidIbvCountRx
 ) {
 #pragma HLS INLINE
 
@@ -674,7 +675,7 @@ void rocev2(
 	/*
 	 * IB PROTOCOL
 	 */
-	ib_transport_protocol<WIDTH>(	
+	ib_transport_protocol<WIDTH, 0>(	
 		rx_ipUdpMetaFifo,
 		rx_udp2ibFifo,
 		tx_ipUdpMetaFifo,
@@ -691,7 +692,8 @@ void rocev2(
 		m_axis_dbg_0,
 		m_axis_dbg_1,
 #endif
-		regInvalidPsnDropCount
+		regInvalidPsnDropCount,
+		regValidIbvCountRx
 	);
 
 	/*
@@ -789,7 +791,8 @@ void rocev2_top(
 	stream<recvPkg>& m_axis_dbg_1,
 #endif 
 	ap_uint<32>& regCrcDropPkgCount,
-	ap_uint<32>& regInvalidPsnDropCount
+	ap_uint<32>& regInvalidPsnDropCount,
+	ap_uint<32>& regValidIbvCountRx
 ) {
 	#pragma HLS DATAFLOW disable_start_propagation
 	#pragma HLS INTERFACE ap_ctrl_none port=return
@@ -869,7 +872,8 @@ void rocev2_top(
 		m_axis_dbg_1,
 #endif 
 		regCrcDropPkgCount,
-		regInvalidPsnDropCount
+		regInvalidPsnDropCount,
+		regValidIbvCountRx
 	);
 	
 #else
@@ -898,7 +902,8 @@ void rocev2_top(
 	stream<recvPkg>& m_axis_dbg_1,
 #endif 
 	ap_uint<32>& regCrcDropPkgCount,
-	ap_uint<32>& regInvalidPsnDropCount
+	ap_uint<32>& regInvalidPsnDropCount,
+	ap_uint<32>& regValidIbvCountRx
 ) {
 	#pragma HLS DATAFLOW disable_start_propagation
 	#pragma HLS INTERFACE ap_ctrl_none port=return
@@ -962,7 +967,8 @@ void rocev2_top(
 		m_axis_dbg_1,
 #endif 
 		regCrcDropPkgCount,
-		regInvalidPsnDropCount
+		regInvalidPsnDropCount,
+		regValidIbvCountRx
 );
 #endif
 

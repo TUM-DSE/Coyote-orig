@@ -1,13 +1,13 @@
 // I/O
-AXI4S axis_sink_int ();
-AXI4S axis_src_int ();
+AXI4SR axis_sink_int ();
+AXI4SR axis_src_int ();
 
 `ifdef EN_STRM
-axis_reg inst_reg_sink (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_host_sink), .m_axis(axis_sink_int));
-axis_reg inst_reg_src (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_src_int), .m_axis(axis_host_src));
+axisr_reg inst_reg_sink (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_host_sink), .m_axis(axis_sink_int));
+axisr_reg inst_reg_src (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_src_int), .m_axis(axis_host_src));
 `else
-axis_reg inst_reg_sink (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_card_sink), .m_axis(axis_sink_int));
-axis_reg inst_reg_src (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_src_int), .m_axis(axis_card_src));
+axisr_reg inst_reg_sink (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_card_sink), .m_axis(axis_sink_int));
+axisr_reg inst_reg_src (.aclk(aclk), .aresetn(aresetn), .s_axis(axis_src_int), .m_axis(axis_card_src));
 `endif
 
 // UL
@@ -150,6 +150,33 @@ always_comb begin
 
     axis_src_int.tdata = cnt_data + 1;
     axis_src_int.tkeep = ~0;
+    axis_src_int.tid   = 0;
     axis_src_int.tlast = 1'b0;
     axis_src_int.tvalid = (state_C == ST_WRITE) && ~done_data;
 end
+
+/*
+ila_0 inst_ila_0 (
+    .clk(aclk),
+    .probe0(bench_ctrl), // 2
+    .probe1(bench_done), // 32
+    .probe2(bench_timer), 
+    .probe3(bench_vaddr),
+    .probe4(bench_len), // 28
+    .probe5(bench_pid), // 6
+    .probe6(bench_n_reps), // 32
+    .probe7(bench_n_beats), // 64
+    .probe8(done_req),
+    .probe9(done_data),
+    .probe10(cnt_data), // 64
+    .probe11(bench_sent), // 32
+    .probe12(cnt_rd_done), // 16
+    .probe13(cnt_wr_done), // 16
+    .probe14(axis_sink_int.tvalid),
+    .probe15(axis_sink_int.tready),
+    .probe16(axis_sink_int.tlast),
+    .probe17(axis_src_int.tvalid),
+    .probe18(axis_src_int.tready),
+    .probe19(axis_src_int.tlast)
+);
+*/
