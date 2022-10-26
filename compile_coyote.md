@@ -1,12 +1,13 @@
 
 # Change Coyote commit
 
-We are currently using commit `c7e475e` for testing. 
+To change to a specific commit, such as `c7e475e`, run the following command. 
 
 ```
 cd Coyote
 git checkout c7e475e
 ```
+We are currently not using any specifi commit but just the latest one.  
 
 # Compile Coyote Shell
 ```
