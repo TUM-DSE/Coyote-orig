@@ -31,6 +31,7 @@ open_hw_target
 set Device [lindex [get_hw_devices] 0]
 current_hw_device $Device
 refresh_hw_device -update_hw_probes false $Device
+refresh_hw_device $Device
 set_property PROBES.FILE {} $Device
 set_property FULL_PROBES.FILE {} $Device
 set_property PROGRAM.FILE {/home/jiyang/Coyote_new/hw/build/bitstreams/cyt_top.bit} $Device
@@ -43,8 +44,10 @@ Make sure to change the PROGRAM.FILE parameter for the target bitstream. Use `vi
 
 
 # Compile Coyote driver
+Note: It is recommended to reboot the machine before installing the driver. As installing the driver immedeiately after programming the FPGA card can cause kernel bug which can only be solved by hard reset the server. Installing driver before programming the FPGA does not report any errors but the user logic might not work properly as the driver will initialize some parameter in the FPGA shell. Rebooting the machine does not seem to affect bitstream written into the FPGA.
 
 ```
+sudo reboot 
 cd driver && make
 sudo insmod coyote_drv.ko
 ```
