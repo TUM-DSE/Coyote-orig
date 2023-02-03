@@ -61,12 +61,12 @@ int main(int argc, char *argv[])
     // Check the results
     bool k = true;
     for(int i = 0; i < size / 8; i++) {
-        if(i%2 ? ((uint64_t*) hMem)[i] != cipherHigh : ((uint64_t*) hMem)[i] != cipherHigh) {
+        if(i%2 ? ((uint64_t*) hMem)[i] != cipherHigh : ((uint64_t*) hMem)[i] != cipherLow) {
             k = false;
             break;
         }
     }
 
-    std::cout << "Check returns: " << k << std::endl;
+    std::cout << (k ? "Success: cipher text matches test vectors!" : "Error: found cipher text that doesn't match the test vector") << std::endl;
     return (EXIT_SUCCESS);
 }

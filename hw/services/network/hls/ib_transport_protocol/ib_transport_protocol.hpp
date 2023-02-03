@@ -485,7 +485,7 @@ public:
 	}
 	ap_uint<24> getMsn()
 	{
-		return reverse((ap_uint<32>) header(31, 8));
+		return reverse((ap_uint<24>) header(31, 8));
 	}
 	bool isNAK()
 	{
@@ -571,7 +571,7 @@ void ib_transport_protocol(
 	// Debug
 #ifdef DBG_IBV
 	hls::stream<recvPkg>& m_axis_dbg_0,
-	hls::stream<recvPkg>& m_axis_dbg_1,
+	hls::stream<retransEvent>& m_axis_dbg_1,
 #endif
 	ap_uint<32>& regInvalidPsnDropCount,
 	ap_uint<32>& regIbvCountRx,
