@@ -7,20 +7,21 @@ To change to a specific commit, such as `c7e475e`, run the following command.
 cd Coyote
 git checkout c7e475e
 ```
-We are currently not using any specifi commit but just the latest one.  
+We are currently not using any specific commit but just the latest one.  
 
 # Compile Coyote Shell
 ```
-cd Coyote/hw/
-mkdir build && cd build
-cmake .. -DFDEV_NAME=u50 -DEXAMPLE=bmark_fpga
+cd Coyote/
+mkdir build_perf_fpga_hw && cd build_perf_fpga_hw
+/usr/bin/cmake ../hw/ -DFDEV_NAME=u50 -DEXAMPLE=perf_host
 make shell
 make compile
 ```
+You can also check the original [workflow](https://github.com/fpgasystems/Coyote/blob/master/.github/workflows/build_base.yml) for up-to-date compile instructions. 
 
 # Program FPGA with Coyote Shell
 
-Use vivado to write the bitstream located in `Coyote/hw/build/bitstreams/cyt_top.bit`. This is required if the server is rebooted.
+Use vivado to write the bitstream located in `Coyote/build_perf_fpga_hw/bitstreams/cyt_top.bit`. This is required if the server is rebooted.
 
 A tcl script can be used to streamline this process. An example is shown below. 
 ```
@@ -34,7 +35,7 @@ refresh_hw_device -update_hw_probes false $Device
 refresh_hw_device $Device
 set_property PROBES.FILE {} $Device
 set_property FULL_PROBES.FILE {} $Device
-set_property PROGRAM.FILE {/home/jiyang/Coyote_new/hw/build/bitstreams/cyt_top.bit} $Device
+set_property PROGRAM.FILE {/home/jiyang/Coyote/build_perf_fpga_hw/bitstreams/cyt_top.bit} $Device
 
 program_hw_devices $Device
 refresh_hw_device $Device
