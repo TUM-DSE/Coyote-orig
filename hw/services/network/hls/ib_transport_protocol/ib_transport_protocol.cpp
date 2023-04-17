@@ -637,7 +637,7 @@ void rx_exh_fsm(
 			AckExHeader<WIDTH> ackHeader = exHeader.getAckHeader();
 			if(meta.op_code == RC_RDMA_READ_RESP_ONLY || meta.op_code == RC_RDMA_READ_RESP_LAST)
 			{
-				m_axis_rx_ack_meta.write(ackMeta(ackHeader.isNAK(), meta.dest_qp(9,0), ackHeader.getSyndrome(), ackHeader.getMsn()));
+				m_axis_rx_ack_meta.write(ackMeta(RD_ACK, meta.dest_qp(9,0), ackHeader.getSyndrome(), ackHeader.getMsn()));
 			}
 
 			if (ackHeader.isNAK())
@@ -681,8 +681,8 @@ void rx_exh_fsm(
 			payLoadLength = udpLength - (8 + 12 + 4); //UDP, BTH, CRC
 			rx_pkgShiftTypeFifo.write(pkgShift(SHIFT_NONE, meta.dest_qp));
 			memoryWriteCmd.write(memCmd(dmaMeta.vaddr, payLoadLength, PKG_NF, PKG_HOST, meta.dest_qp));
-			//TODO how does msn have to be handled??
-			rxExh2msnTable_upd_req.write(rxMsnReq(meta.dest_qp, dmaMeta.msn+1, dmaMeta.vaddr+payLoadLength, 0));
+
+			rxExh2msnTable_upd_req.write(rxMsnReq(meta.dest_qp, dmaMeta.msn, dmaMeta.vaddr+payLoadLength, 0));
 			rx_pkgSplitTypeFifo.write(pkgSplit(meta.op_code));
 			pe_fsmState = META;
 			break;
@@ -690,7 +690,7 @@ void rx_exh_fsm(
 		{
 			// [BTH][AETH]
 			AckExHeader<WIDTH> ackHeader = exHeader.getAckHeader();
-			m_axis_rx_ack_meta.write(ackMeta(ackHeader.isNAK(), meta.dest_qp(9,0), ackHeader.getSyndrome(), ackHeader.getMsn()));
+			m_axis_rx_ack_meta.write(ackMeta(WR_ACK, meta.dest_qp(9,0), ackHeader.getSyndrome(), ackHeader.getMsn()));
 
 			std::cout << "[RX EXH FSM " << INSTID << "]: syndrome: " << std::hex << ackHeader.getSyndrome() << std::endl;
 #ifdef RETRANS_EN
